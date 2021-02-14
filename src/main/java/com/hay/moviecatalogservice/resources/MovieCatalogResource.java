@@ -2,7 +2,10 @@ package com.hay.moviecatalogservice.resources;
 
 import com.hay.moviecatalogservice.models.CatalogItem;
 import com.hay.moviecatalogservice.models.Movie;
+import com.hay.moviecatalogservice.models.Rating;
 import com.hay.moviecatalogservice.models.UserRating;
+import com.hay.moviecatalogservice.services.MovieInfo;
+import com.hay.moviecatalogservice.services.UserRatingInfo;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,30 +28,24 @@ public class MovieCatalogResource {
     @Autowired
     private WebClient.Builder webClientBuilder;
 
+    @Autowired
+    private MovieInfo movieInfo;
+
+    @Autowired
+    private UserRatingInfo userRatingInfo;
+
     @RequestMapping("/{userId}")
-    @HystrixCommand(fallbackMethod = "getFallbackCatalog")
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId) {
 
-        UserRating userRating = restTemplate.getForObject(
-                "http://ratings-data-service/ratingsdata/users/" + userId,
-                UserRating.class
-        );
+        UserRating userRating = userRatingInfo.getUserRating(userId);
 
-        return userRating.getUserRating().stream()
-                .map(rating -> {
-                    Movie movie = restTemplate.getForObject(
-                            "http://movie-info-service/movies/" + rating.getMovieId(), Movie.class
-                    );
-                    return new CatalogItem(movie.getName(), movie.getDescription(), rating.getRating());
-                })
+        return userRating.getRatings().stream()
+                .map(rating -> movieInfo.getCatalogItem(rating))
                 .collect(Collectors.toList());
 
     }
 
-    public List<CatalogItem> getFallbackCatalog(@PathVariable("userId") String userId) {
-        return Arrays.asList(new CatalogItem("No movie", "no", 0));
 
-    }
 }
 
 //            Movie movie = webClientBuilder.build()
