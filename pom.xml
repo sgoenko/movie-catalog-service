@@ -8,7 +8,7 @@
 		<version>2.2.5.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.enesoral</groupId>
+	<groupId>com.hay</groupId>
 	<artifactId>movie-catalog-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>movie-catalog-service</name>
